@@ -18,3 +18,14 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: {{ .Values.containerPort }}
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
