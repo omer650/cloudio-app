@@ -11,10 +11,10 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 8000
+      targetPort: 80
       nodePort: 30081
     - name: admin
       protocol: TCP
       port: 8080
-      targetPort: 8080
+      targetPort: 8000
       nodePort: 30091
