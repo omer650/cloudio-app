@@ -1,0 +1,23 @@
+name: Cloudio CI/CD
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-1
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: Build and Push
+      run: |
+        docker build -t ${{ steps.login-ecr.outputs.registry }}/cloudio-backend:latest ./backend
+        docker push ${{ steps.login-ecr.outputs.registry }}/cloudio-backend:latest
