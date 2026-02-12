@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-
+const API_URL = process.env.REACT_APP_API_URL || 'http://k8s.omerha1.shop/api'; // Updated to FQDN
 // Simple check to see if we are in "Admin Mode" based on URL
 // To access admin, you will go to http://localhost:8080/manage
 const IS_ADMIN = window.location.pathname === '/manage';
