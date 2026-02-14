@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, Cloud, Activity, Database, Settings, Shield, Plus } from 'lucide-react';
+import { LayoutDashboard, Cloud, Activity, Database, Settings, Shield, Search, Folder } from 'lucide-react';
 
 const API_URL = 'http://34.247.141.77:30081'; // Backend IP
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`${API_URL}/items`)
-      .then(res => { setItems(res.data); setLoading(false); })
+    // Fetch Categories
+    axios.get(`${API_URL}/categories`)
+      .then(res => { setCategories(res.data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
   }, []);
+
+  const filteredCategories = categories.filter(cat =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div style={{ display: 'flex', height: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
@@ -37,50 +43,70 @@ function App() {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '40px', overflowY: 'auto', direction: 'ltr' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <div>
-            <h2 style={{ fontSize: '30px', margin: 0 }}>Cloud Inventory</h2>
-            <p style={{ color: '#94a3b8', margin: '4px 0 0 0' }}>Overview of your infrastructure across all regions.</p>
+      <main style={{ flex: 1, padding: '60px', overflowY: 'auto', direction: 'ltr' }}>
+
+        {/* Search Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '80px' }}>
+          <h2 style={{ fontSize: '36px', fontWeight: '700', marginBottom: '32px', color: '#e2e8f0' }}>Cloud Inventory</h2>
+
+          <div style={{ position: 'relative', width: '600px', maxWidth: '100%' }}>
+            <Search style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={24} />
+            <input
+              type="text"
+              placeholder="Search folders..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '20px 24px 20px 64px',
+                borderRadius: '16px',
+                border: '1px solid #334155',
+                backgroundColor: '#1e293b',
+                color: 'white',
+                fontSize: '18px',
+                outline: 'none',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+              }}
+            />
           </div>
-          <button style={{ backgroundColor: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
-            <Plus size={18} /> Create Instance
-          </button>
-        </header>
-
-        {/* Stats Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
-          <StatCard label="Total Resources" value={items.length} change="+12%" />
-          <StatCard label="Active Instances" value={items.length > 0 ? items.length - 1 : 0} change="94% Active" color="#10b981" />
-          <StatCard label="Pending Tasks" value="03" change="Attention" color="#f59e0b" />
         </div>
 
-        {/* Inventory Table */}
-        <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', border: '1px solid #334155' }}>
-          <h3 style={{ marginBottom: '20px' }}>Active Deployments</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ color: '#94a3b8', borderBottom: '1px solid #334155', textAlign: 'left' }}>
-                <th style={{ padding: '12px' }}>RESOURCE NAME</th>
-                <th style={{ padding: '12px' }}>STATUS</th>
-                <th style={{ padding: '12px' }}>REGION</th>
-                <th style={{ padding: '12px' }}>UPTIME</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #334155' }}>
-                  <td style={{ padding: '16px 12px', fontWeight: '500' }}>{item.title || item.name}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ backgroundColor: '#064e3b', color: '#34d399', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' }}>Healthy</span>
-                  </td>
-                  <td style={{ padding: '12px', color: '#94a3b8' }}>us-east-1</td>
-                  <td style={{ padding: '12px', color: '#94a3b8' }}>14d 6h</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Folders Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+          gap: '48px',
+          padding: '0 40px'
+        }}>
+          {filteredCategories.map((cat) => (
+            <div
+              key={cat.id}
+              onClick={() => console.log('Clicked category:', cat.id)}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '20px',
+                borderRadius: '12px',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.3)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <Folder size={90} color="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={1.5} />
+              <span style={{ fontSize: '16px', fontWeight: '500', color: '#cbd5e1', textAlign: 'center' }}>{cat.name}</span>
+            </div>
+          ))}
+
+          {filteredCategories.length === 0 && !loading && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '40px' }}>
+              No folders found.
+            </div>
+          )}
         </div>
+
       </main>
     </div>
   );
@@ -90,16 +116,6 @@ function App() {
 const NavItem = ({ icon, label, active }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', backgroundColor: active ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: '0.2s' }}>
     {icon} <span style={{ fontWeight: active ? '600' : '400' }}>{label}</span>
-  </div>
-);
-
-const StatCard = ({ label, value, change, color = '#3b82f6' }) => (
-  <div style={{ backgroundColor: '#1e293b', padding: '24px', borderRadius: '12px', border: '1px solid #334155' }}>
-    <p style={{ color: '#94a3b8', margin: 0, fontSize: '14px' }}>{label}</p>
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginTop: '8px' }}>
-      <h4 style={{ fontSize: '32px', margin: 0 }}>{value}</h4>
-      <span style={{ color: color, fontSize: '14px', fontWeight: '600' }}>{change}</span>
-    </div>
   </div>
 );
 
