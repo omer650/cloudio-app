@@ -1,1 +1,1 @@
-INSERT INTO categories (name) VALUES ('System Docs'), ('Infrastructure'), ('User Guides') ON CONFLICT (name) DO NOTHING;
+INSERT INTO categories (name) VALUES ('Customer Setups'), ('Project Files'), ('Admin Tools'), ('Network Maps'), ('Data Backups'), ('User Manuals') ON CONFLICT (name) DO NOTHING;
