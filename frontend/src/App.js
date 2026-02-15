@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, Cloud, Activity, Database, Settings, Shield, Search, Folder } from 'lucide-react';
+import { Cloud, Search, CloudUpload, FileCog, Shield, Network, Database, Book } from 'lucide-react';
 
 const API_URL = 'http://34.247.141.77:30081'; // Backend IP
+
+const getIconForCategory = (name) => {
+  switch (name) {
+    case 'Customer Setups': return <CloudUpload size={48} color="#3b82f6" />;
+    case 'Project Files': return <FileCog size={48} color="#10b981" />;
+    case 'Admin Tools': return <Shield size={48} color="#ef4444" />;
+    case 'Network Maps': return <Network size={48} color="#8b5cf6" />;
+    case 'Data Backups': return <Database size={48} color="#f59e0b" />;
+    case 'User Manuals': return <Book size={48} color="#64748b" />;
+    default: return <Cloud size={48} color="#cbd5e1" />;
+  }
+};
 
 function App() {
   const [categories, setCategories] = useState([]);
@@ -21,39 +33,27 @@ function App() {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
 
-      {/* Sidebar - Stitch Style */}
-      <aside style={{ width: '260px', backgroundColor: '#1e293b', padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', borderLeft: '1px solid #334155' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#38bdf8' }}>
-          <Cloud size={32} />
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Cloudio</h1>
-        </div>
+      {/* Main Content - Centered */}
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 20px', direction: 'ltr' }}>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <NavItem icon={<LayoutDashboard size={20} />} label="Dashboard" active />
-          <NavItem icon={<Cloud size={20} />} label="Cloud Resources" />
-          <NavItem icon={<Activity size={20} />} label="Monitoring" />
-          <NavItem icon={<Database size={20} />} label="Backups" />
-          <NavItem icon={<Shield size={20} />} label="Security" />
-          <div style={{ marginTop: 'auto', paddingTop: '40px' }}>
-            <NavItem icon={<Settings size={20} />} label="Settings" />
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main style={{ flex: 1, padding: '60px', overflowY: 'auto', direction: 'ltr' }}>
-
-        {/* Search Header */}
+        {/* Header & Search */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '80px' }}>
-          <h2 style={{ fontSize: '36px', fontWeight: '700', marginBottom: '32px', color: '#e2e8f0' }}>Cloud Inventory</h2>
+
+          {/* Logo / Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', color: '#38bdf8' }}>
+            <Cloud size={48} />
+            <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0, color: '#f8fafc' }}>Cloudio</h1>
+          </div>
+
+          <h2 style={{ fontSize: '20px', fontWeight: '400', marginBottom: '40px', color: '#94a3b8' }}>Cloud Services Portal</h2>
 
           <div style={{ position: 'relative', width: '600px', maxWidth: '100%' }}>
             <Search style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={24} />
             <input
               type="text"
-              placeholder="Search folders..."
+              placeholder="Search services..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               style={{
@@ -71,38 +71,63 @@ function App() {
           </div>
         </div>
 
-        {/* Folders Grid */}
+        {/* Service Cards Grid - Responsive (approx 3 in a row on desktop) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-          gap: '48px',
-          padding: '0 40px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gap: '32px',
+          padding: '0 20px'
         }}>
           {filteredCategories.map((cat) => (
             <div
               key={cat.id}
-              onClick={() => console.log('Clicked category:', cat.id)}
+              onClick={() => window.location.href = `/service/${cat.id}`}
               style={{
+                position: 'relative',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                gap: '16px',
-                padding: '20px',
+                justifyContent: 'center',
+                gap: '20px',
+                padding: '32px',
                 borderRadius: '12px',
-                transition: 'background-color 0.2s'
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                transition: 'all 0.3s ease',
+                height: '240px'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.3)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#334155';
+                e.currentTarget.style.transform = 'scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                e.currentTarget.style.borderColor = '#38bdf8';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1e293b';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#334155';
+              }}
             >
-              <Folder size={90} color="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={1.5} />
-              <span style={{ fontSize: '16px', fontWeight: '500', color: '#cbd5e1', textAlign: 'center' }}>{cat.name}</span>
+              {/* Status Indicator */}
+              <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></div>
+                <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: '500' }}>Status: Active</span>
+              </div>
+
+              {/* Icon */}
+              <div style={{ alignSelf: 'center', padding: '16px', borderRadius: '50%', backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
+                {getIconForCategory(cat.name)}
+              </div>
+
+              {/* Title */}
+              <span style={{ fontSize: '20px', fontWeight: '600', color: '#f1f5f9', textAlign: 'center' }}>{cat.name}</span>
             </div>
           ))}
 
           {filteredCategories.length === 0 && !loading && (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '40px' }}>
-              No folders found.
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '40px', fontSize: '18px' }}>
+              No services found matching "{searchTerm}".
             </div>
           )}
         </div>
@@ -111,12 +136,5 @@ function App() {
     </div>
   );
 }
-
-// Helpers
-const NavItem = ({ icon, label, active }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '8px', backgroundColor: active ? '#3b82f6' : 'transparent', cursor: 'pointer', transition: '0.2s' }}>
-    {icon} <span style={{ fontWeight: active ? '600' : '400' }}>{label}</span>
-  </div>
-);
 
 export default App;
