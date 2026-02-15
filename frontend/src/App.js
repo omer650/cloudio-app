@@ -1,137 +1,139 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Cloud, Search, CloudUpload, FileCog, Shield, Network, Database, Book } from 'lucide-react';
+import {
+  CloudUpload, FileCog, Shield, Network, Database, Book,
+  Search, ArrowLeft, Activity, Server, Lock
+} from 'lucide-react';
 
-const API_URL = 'http://34.247.141.77:30081'; // Backend IP
-
-const getIconForCategory = (name) => {
-  switch (name) {
-    case 'Customer Setups': return <CloudUpload size={48} color="#3b82f6" />;
-    case 'Project Files': return <FileCog size={48} color="#10b981" />;
-    case 'Admin Tools': return <Shield size={48} color="#ef4444" />;
-    case 'Network Maps': return <Network size={48} color="#8b5cf6" />;
-    case 'Data Backups': return <Database size={48} color="#f59e0b" />;
-    case 'User Manuals': return <Book size={48} color="#64748b" />;
-    default: return <Cloud size={48} color="#cbd5e1" />;
-  }
+const iconMap = {
+  'Customer Setups': { icon: CloudUpload, color: 'text-blue-400' },
+  'Project Files': { icon: FileCog, color: 'text-emerald-400' },
+  'Admin Tools': { icon: Shield, color: 'text-red-400' },
+  'Network Maps': { icon: Network, color: 'text-violet-400' },
+  'Data Backups': { icon: Database, color: 'text-amber-400' },
+  'User Manuals': { icon: Book, color: 'text-slate-400' },
 };
 
 function App() {
-  const [categories, setCategories] = useState([]);
+  const [services, setServices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
+  // האזנה לשינויי ניווט (בדפדפן)
   useEffect(() => {
-    // Fetch Categories
-    axios.get(`${API_URL}/categories`)
-      .then(res => { setCategories(res.data); setLoading(false); })
-      .catch(err => { console.error(err); setLoading(false); });
+    const handleLocationChange = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  const filteredCategories = categories.filter(cat =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetch('http://34.247.141.77:30080/api/folders')
+      .then(res => res.json())
+      .then(data => setServices(data))
+      .catch(err => console.error("Error fetching services:", err));
+  }, []);
+
+  const navigate = (path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+  };
+
+  // --- תצוגת עמוד שירות ספציפי ---
+  if (currentPath.startsWith('/service/')) {
+    const serviceId = currentPath.split('/').pop();
+    const service = services.find(s => s.id.toString() === serviceId);
+
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-white p-12">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-slate-400 hover:text-blue-400 transition-colors mb-8"
+        >
+          <ArrowLeft size={20} /> Back to Dashboard
+        </button>
+
+        <div className="max-w-4xl">
+          <div className="flex items-center gap-4 mb-6">
+            <h1 className="text-4xl font-bold">{service?.name || 'Service Details'}</h1>
+            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-sm flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Active
+            </span>
+          </div>
+
+          {/* שורת חיפוש פנימית (השאלה ההיפותטית שלך) */}
+          <div className="relative mb-8 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <input
+              type="text"
+              placeholder={`Search resources in ${service?.name}...`}
+              className="w-full bg-[#1e293b] border border-slate-700 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500 transition-all"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-[#1e293b] p-6 rounded-xl border border-slate-700">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Activity size={18} className="text-blue-400" /> Resource Metrics</h3>
+              <p className="text-slate-400 text-sm">Real-time telemetry for {service?.name} is initializing...</p>
+            </div>
+            <div className="bg-[#1e293b] p-6 rounded-xl border border-slate-700">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Lock size={18} className="text-red-400" /> Access Control</h3>
+              <p className="text-slate-400 text-sm">Security policies are currently synchronized with IAM.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- תצוגת דאשבורד ראשי ---
+  const filteredServices = services.filter(s =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-[#0f172a] text-white p-12">
+      <header className="max-w-6xl mx-auto mb-16 text-center">
+        <h1 className="text-5xl font-black tracking-tight mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+          Cloudio
+        </h1>
+        <p className="text-slate-400 text-lg">Cloud Services Portal</p>
 
-      {/* Main Content - Centered */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 20px', direction: 'ltr' }}>
-
-        {/* Header & Search */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '80px' }}>
-
-          {/* Logo / Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', color: '#38bdf8' }}>
-            <Cloud size={48} />
-            <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0, color: '#f8fafc' }}>Cloudio</h1>
-          </div>
-
-          <h2 style={{ fontSize: '20px', fontWeight: '400', marginBottom: '40px', color: '#94a3b8' }}>Cloud Services Portal</h2>
-
-          <div style={{ position: 'relative', width: '600px', maxWidth: '100%' }}>
-            <Search style={{ position: 'absolute', left: 24, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={24} />
-            <input
-              type="text"
-              placeholder="Search services..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '20px 24px 20px 64px',
-                borderRadius: '16px',
-                border: '1px solid #334155',
-                backgroundColor: '#1e293b',
-                color: 'white',
-                fontSize: '18px',
-                outline: 'none',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-              }}
-            />
-          </div>
+        <div className="relative mt-8 max-w-xl mx-auto">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+          <input
+            type="text"
+            placeholder="Search cloud services..."
+            className="w-full bg-[#1e293b] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-lg focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xl"
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
+      </header>
 
-        {/* Service Cards Grid - Responsive (approx 3 in a row on desktop) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-          gap: '32px',
-          padding: '0 20px'
-        }}>
-          {filteredCategories.map((cat) => (
+      <main className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredServices.map((service) => {
+          const { icon: Icon, color } = iconMap[service.name] || { icon: Server, color: 'text-slate-400' };
+
+          return (
             <div
-              key={cat.id}
-              onClick={() => window.location.href = `/service/${cat.id}`}
-              style={{
-                position: 'relative',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                gap: '20px',
-                padding: '32px',
-                borderRadius: '12px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                transition: 'all 0.3s ease',
-                height: '240px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#334155';
-                e.currentTarget.style.transform = 'scale(1.02)';
-                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-                e.currentTarget.style.borderColor = '#38bdf8';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#1e293b';
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#334155';
-              }}
+              key={service.id}
+              onClick={() => navigate(`/service/${service.id}`)}
+              className="group bg-[#1e293b] border border-slate-800 rounded-2xl p-8 hover:border-blue-500/50 hover:bg-[#242f44] transition-all cursor-pointer relative overflow-hidden shadow-lg hover:scale-[1.02]"
             >
-              {/* Status Indicator */}
-              <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 8px #22c55e' }}></div>
-                <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: '500' }}>Status: Active</span>
+              <div className="absolute top-4 right-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
               </div>
 
-              {/* Icon */}
-              <div style={{ alignSelf: 'center', padding: '16px', borderRadius: '50%', backgroundColor: 'rgba(15, 23, 42, 0.5)' }}>
-                {getIconForCategory(cat.name)}
+              <div className={`mb-6 p-4 rounded-xl bg-slate-900/50 inline-block group-hover:scale-110 transition-transform ${color}`}>
+                <Icon size={32} />
               </div>
 
-              {/* Title */}
-              <span style={{ fontSize: '20px', fontWeight: '600', color: '#f1f5f9', textAlign: 'center' }}>{cat.name}</span>
+              <h3 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors">{service.name}</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Management portal for {service.name.toLowerCase()} assets and deployments.
+              </p>
             </div>
-          ))}
-
-          {filteredCategories.length === 0 && !loading && (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '40px', fontSize: '18px' }}>
-              No services found matching "{searchTerm}".
-            </div>
-          )}
-        </div>
-
+          );
+        })}
       </main>
     </div>
   );
