@@ -24,4 +24,4 @@ jobs:
         with:
           context: ./cloudio-app/frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/cloudio-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/cloudio-frontend:v${{ github.run_number }}
