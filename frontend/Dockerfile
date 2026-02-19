@@ -7,11 +7,10 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve
-FROM nginx:alpine
+FROM nginx:stable-alpine
 # העתקת התוצרים של ה-Build
 COPY --from=build /app/build /usr/share/nginx/html
-# --- השורה החדשה שהוספנו: ---
-# העתקת קובץ הקונפיגורציה שלנו במקום ברירת המחדל של Nginx
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Cloud, Search, FileText, Shield, Network, Database, BookOpen, ChevronLeft, FolderOpen } from 'lucide-react';
 
-// וודא שכתובת ה-IP של ה-Backend ב-AWS מעודכנת
-const API_URL = 'http://34.247.141.77:30081';
+// כתובות ה-IP של השירותים (Backend ו-Elasticsearch)
+const BACKEND_URL = 'http://34.247.141.77:30081';
+const ES_URL = 'http://34.247.141.77:30091';
 
 function App() {
   const [items, setItems] = useState([]);
@@ -24,15 +25,33 @@ function App() {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`${API_URL}/items?q=${searchQuery}`)
-      .then(res => {
-        setItems(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Elasticsearch Error:", err);
-        setLoading(false);
-      });
+
+    if (searchQuery) {
+      // חיפוש דרך Elasticsearch (פורט 30091)
+      axios.get(`${ES_URL}/files/_search?q=${searchQuery}`) // Assuming index is 'files' or similar, or just global search
+        .then(res => {
+          // המרת מבנה התשובה של ES למבנה שהאפליקציה מכירה
+          const hits = res.data.hits && res.data.hits.hits ? res.data.hits.hits : [];
+          const mappedItems = hits.map(hit => hit._source);
+          setItems(mappedItems);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Elasticsearch Error:", err);
+          setLoading(false);
+        });
+    } else {
+      // שליפת כל הקבצים מה-Backend (פורט 30081)
+      axios.get(`${BACKEND_URL}/files`)
+        .then(res => {
+          setItems(res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Backend Error:", err);
+          setLoading(false);
+        });
+    }
   }, [searchQuery]);
 
   const filteredFolders = defaultFolders.filter(folder =>
